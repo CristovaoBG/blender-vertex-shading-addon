@@ -7,3 +7,6 @@ Blender addon to easily simulate simple light as vertex color.
 
 # Usage
 On object mode, select the object you want to apply the light and press Ctrl+Shift+Space, then tune the desired setting values at the toolbar.
+
+# Demo
+![](demo.gif)
