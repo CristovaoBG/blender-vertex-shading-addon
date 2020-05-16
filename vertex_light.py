@@ -13,13 +13,7 @@ class ObjectCursorArray(bpy.types.Operator):
     bl_idname = "object.cursor_array"
     bl_label = "Cursor Array"
     bl_options = {'REGISTER', 'UNDO'}
-    '''
-    selected_faces_only = bpy.props.BoolProperty(
-        name="Selected Faces Only",
-        description="Apply changes only to selected faces",
-        default = False
-        )
-    '''
+
     selected_faces_only = bpy.props.BoolProperty(
         name="Selected faces only",
         description="Apply changes only to selected faces",
@@ -30,17 +24,17 @@ class ObjectCursorArray(bpy.types.Operator):
         description="Remove existing \"color\"",
         default = False
         )
+    clear_alpha = bpy.props.FloatProperty(
+        name = "Base Color Factor",
+        description = "How much of base color to be added",
+        default = 0.0,
+        min = -1.0,
+        max = 1.0
+        )
     clear_color = bpy.props.FloatVectorProperty(
         name="Base color",
         description="add specified color to vertexes",
-        default = (0,0,0)
-        )
-    clear_alpha = bpy.props.FloatProperty(
-        name = "Base Color Alpha",
-        description = "How much of base color to be added",
-        default = 0.0,
-        min = 0.0,
-        max = 1.0
+        default = (1.0,1.0,1.0)
         )
     light_enabled = bpy.props.BoolProperty(
         name="Enable Light",
@@ -48,15 +42,15 @@ class ObjectCursorArray(bpy.types.Operator):
         default = False
         )
     alpha = bpy.props.IntProperty(
-        name = "vertical angle",
-        description = "Set vertical axis angle",
+        name = "horizontal angle",
+        description = "Set horizontal axis angle",
         default = 45,
         min = 0,
         max = 360
         )
     beta = bpy.props.IntProperty(
-        name = "horizontal angle",
-        description = "Set horizontal axis angle",
+        name = "vertical angle",
+        description = "Set vertical axis angle",
         default = 45,
         min = 0,
         max = 360
@@ -97,22 +91,6 @@ class ObjectCursorArray(bpy.types.Operator):
         min = 0.0,
         max = 1.0
         )
-    '''
-    face_amt = bpy.props.FloatProperty(
-        name = "Face brightness Amount",
-        description = "How much brightness will be added to selected faces",
-        default = 0.1,
-        min = -1.0,
-        max = 1.0
-        )
-
-    face_color = bpy.props.FloatVectorProperty(
-        name="face brightness color",
-        description="color of brightness to be applied to selected faces",
-        default = (1,1,1)
-        )
-    '''
-
 
     def execute(self, context):
         scene = context.scene
@@ -137,16 +115,17 @@ class ObjectCursorArray(bpy.types.Operator):
             amount = self.light_amt
             a = radians(self.alpha)
             b = radians(self.beta)
-            light_direction = Vector((cos(b)*cos(a),sin(b)*cos(a),cos(b)*sin(a)))
+            light_direction = Vector((cos(b)*cos(a),cos(b)*sin(a),sin(b)))
             if not colors:
                 colors = bm.loops.layers.color.new("Col")
             for face in faces:
-                n = face.normal
-                lightness = Vector(n).dot(Vector(light_direction).normalized())
-                lightness = (lightness+self.angle_allowance)/(1+self.angle_allowance)   #remap
-                lightness = lightness if lightness > 0 else 0
-                for loop in face.loops:
-                    loop[colors] = Vector(loop[colors]) + amount *(light*lightness)
+                if ((self.selected_faces_only and face.select) or (not self.selected_faces_only)):
+                    n = face.normal
+                    lightness = Vector(n).dot(Vector(light_direction).normalized())
+                    lightness = (lightness+self.angle_allowance)/(1+self.angle_allowance)   #remap
+                    lightness = lightness if lightness > 0 else 0
+                    for loop in face.loops:
+                        loop[colors] = Vector(loop[colors]) + amount *(light*lightness)
         #smooth vertexes
         if (self.smooth_enabled):
             verts = bm.verts
