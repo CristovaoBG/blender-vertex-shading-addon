@@ -137,6 +137,8 @@ class ObjectCursorArray(bpy.types.Operator):
                 if ((self.smooth_selected_only and v.select) or (not self.smooth_selected_only)):
                     sum = Vector((0,0,0))
                     count = len(v.link_loops)
+                    if count == 0:
+                        continue
                     for loop in v.link_loops:
                         sum += Vector(loop[colors])
                         #loop[colors] = (n.x,n.y,n.z)
