@@ -7,6 +7,7 @@ import bpy
 import bmesh
 from math import *
 from mathutils import *
+from random import random
 
 class ObjectCursorArray(bpy.types.Operator):
     """Object Cursor Array"""
@@ -74,6 +75,38 @@ class ObjectCursorArray(bpy.types.Operator):
         min = -0.99,
         max = 10.0
         )
+
+
+    noise_enabled = bpy.props.BoolProperty(
+        name="Enable noise",
+        description="Add random noise to each vertex",
+        default = False
+        )
+    noise_monocromatic = bpy.props.BoolProperty(
+        name="Black and white noise",
+        description="Makes noise black and white",
+        default = True
+        )
+    noise_color = bpy.props.FloatVectorProperty(
+        name="Noise color",
+        description="color of noise",
+        default = (1,1,1)
+        )
+    noise_selected_only = bpy.props.BoolProperty(
+        name="Noise to selected only",
+        description="Apply noise only to selected vertices",
+        default = False
+        )
+    noise_amt = bpy.props.FloatProperty(
+        name = "Noise intensity",
+        description = "How much noise will be applied",
+        default = 0.5,
+        min = -1.0,
+        max = 1.0
+        )
+
+
+
     smooth_enabled = bpy.props.BoolProperty(
         name="Enable color smoothing",
         description="Make edges less apparent by smoothing color of vertexes",
@@ -123,9 +156,25 @@ class ObjectCursorArray(bpy.types.Operator):
                     n = face.normal
                     lightness = Vector(n).dot(Vector(light_direction).normalized())
                     lightness = (lightness+self.angle_allowance)/(1+self.angle_allowance)   #remap
-                    lightness = lightness if lightness > 0 else 0
+                    if lightness <= 0:
+                        continue
                     for loop in face.loops:
                         loop[colors] = Vector(loop[colors]) + amount *(light*lightness)
+        #apply noise
+        if (self.noise_enabled):
+            colors = bm.loops.layers.color.active
+            amount = self.noise_amt
+            n = self.noise_color
+            if not colors:
+                colors = bm.loops.layers.color.new("Col")
+            for face in faces:
+                if ((self.noise_selected_only and face.select) or (not self.noise_selected_only)):
+                    for loop in face.loops:
+                        if self.noise_monocromatic:
+                            noise = Vector((0.5,0.5,0.5))-random()*Vector((1,1,1))
+                        else:
+                            noise = Vector((n.x*(0.5-random()),n.y*(0.5-random()),n.x*(0.5-random())))
+                        loop[colors] = Vector(loop[colors]) + amount *noise
         #smooth vertexes
         if (self.smooth_enabled):
             verts = bm.verts
