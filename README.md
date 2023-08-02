@@ -44,5 +44,9 @@ Blender addon to easily simulate simple light as vertex color.
 # Demo
 ![](demo.gif)
 
+# Links
+- Another demo: https://www.youtube.com/watch?v=tOw-9daXfas&t=11s&ab_channel=Zbcrowbarg
+- Repository: https://github.com/CristovaoBG/blender-vertex-shading-addon
+
 Developed by Cristóvão B. Gomes
 cristovao@live.com
